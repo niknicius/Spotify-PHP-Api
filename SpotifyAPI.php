@@ -80,8 +80,6 @@ class SpotifyAPI
 
     }
 
-
-
     public function getAccessToken(){
         $url = self::ACCOUNTS_URL . 'api/token' .
             "?grant_type=authorization_code" .
@@ -96,13 +94,33 @@ class SpotifyAPI
 
         $response = $this->post($url,$headers);
         $response = json_decode($response,true);
-        var_dump($response);
+
         $this->setAccessToken($response['access_token']);
         $this->setTokenType($response['token_type']);
         $this->setTokenExpiration($response['expires_in']);
         $this->setRefreshToken($response['refresh_token']);
 
     }
+
+    public function getMeProfile(){
+        $url = self::API_URL . 'me';
+        $auth = "Authorization: " . $this->token_type . " " . $this->access_token;
+        $headers = [
+            $auth
+        ];
+        return $this->get($url,$headers);
+    }
+
+    public function getUsersProfile($id){
+        $url = self::API_URL . 'users/' . $id;
+        $auth = "Authorization: " . $this->token_type . " " . $this->access_token;
+        $headers = [
+            $auth
+        ];
+        return $this->get($url,$headers);
+    }
+
+
 
     private function post($url,$headers){
         $curl = curl_init();
