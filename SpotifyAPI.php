@@ -20,7 +20,7 @@ class SpotifyAPI
     const DEBUG_MODE = 1;
 
     private $client_id = "17de3e80c9bf4082bf7b6153f68c2554";
-    private $client_secret = "4bd2c58394564d3294ac952329a58b2e";
+    private $client_secret = "hidden";
 
     private $authorization_code;
     private $access_token;
