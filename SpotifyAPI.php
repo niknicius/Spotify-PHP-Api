@@ -20,13 +20,21 @@ class SpotifyAPI
     const DEBUG_MODE = 1;
 
     private $client_id = "17de3e80c9bf4082bf7b6153f68c2554";
-    private $client_secret = "hidden";
+    private $client_secret;
 
     private $authorization_code;
     private $access_token;
     private $token_type;
     private $token_expiration;
     private $refresh_token;
+
+    public function __construct()
+    {
+        $arquivo = fopen ('client_secret.txt', 'r');
+        $linha = fgets($arquivo, 1024);
+        $this->client_secret = $linha;
+        fclose($arquivo);
+    }
 
     /**
      * @param mixed $authorization_code
@@ -69,11 +77,11 @@ class SpotifyAPI
     }
 
     public function generateAuthUrl(){
-        $scopes = "user-read-private user-read-email";
+        $scopes = "user-read-private user-read-email user-top-read user-read-currently-playing";
         $url = self::ACCOUNTS_URL . "authorize" .
             "?response_type=code" .
             "&client_id=" . $this->client_id .
-            "&scopes=" . urlencode($scopes).
+            "&scope=" . urlencode($scopes).
             "&redirect_uri=" . urlencode(self::REDIRECT_URL);
 
         return $url;
@@ -94,12 +102,37 @@ class SpotifyAPI
 
         $response = $this->post($url,$headers);
         $response = json_decode($response,true);
-
+        var_dump($response);
         $this->setAccessToken($response['access_token']);
         $this->setTokenType($response['token_type']);
         $this->setTokenExpiration($response['expires_in']);
         $this->setRefreshToken($response['refresh_token']);
 
+    }
+
+    public function getUsersTop($type, $limit, $offset, $time_range){
+        $url = self::API_URL . "me/top/";
+        switch ($type){
+            case 1:
+                $url .= "artists";
+                break;
+            case 2:
+                $url .= "tracks";
+                break;
+            default:
+                $url .= "tracks";
+        }
+
+        $url .= "?limit=" . $limit .
+            "&offset=" . $offset .
+            "&time_range=" . $time_range;
+
+        $auth = "Authorization: " . $this->token_type . " " . $this->access_token;
+        $headers = [
+            $auth
+        ];
+        var_dump($url);
+        return $this->get($url,$headers);
     }
 
     public function getMeProfile(){
@@ -119,7 +152,6 @@ class SpotifyAPI
         ];
         return $this->get($url,$headers);
     }
-
 
 
     private function post($url,$headers){

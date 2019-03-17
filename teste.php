@@ -15,7 +15,7 @@ if(isset($_GET['code'])){
     $code = $_GET['code'];
     $api->setAuthorizationCode($code);
     $api->getAccessToken();
-    var_dump($api->getUsersProfile("12187184583"));
+    var_dump($api->getUsersTop(1,10,0, "short_term"));
 }
 else{
     header("Location: ". $api->generateAuthUrl());
