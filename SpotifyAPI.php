@@ -8,6 +8,8 @@
 
 namespace SpotifyAPI;
 
+session_start();
+
 
 class SpotifyAPI
 {
@@ -34,6 +36,20 @@ class SpotifyAPI
         $linha = fgets($arquivo, 1024);
         $this->client_secret = $linha;
         fclose($arquivo);
+
+        if(!isset($_SESSION['access_token'])){
+            echo 2;
+            $this->getAccessToken();
+        }
+        else {
+            $this->access_token = $_SESSION['access_token'];
+            $this->authorization_code = $_SESSION['authorization_code'];
+            $this->token_type = $_SESSION['token_type'];
+            $this->token_expiration = $_SESSION['token_type'];
+            $this->refresh_token = $_SESSION['refresh_token'];
+        }
+
+
     }
 
     /**
@@ -41,7 +57,15 @@ class SpotifyAPI
      */
     public function setAuthorizationCode($authorization_code)
     {
-        $this->authorization_code = $authorization_code;
+        if(!isset($_SESSION['authorization_code'])) {
+            $this->authorization_code = $authorization_code;
+            $_SESSION['authorization_code'] = $authorization_code;
+            $this->getAccessToken();
+        }
+    }
+
+    public function restarSession(){
+        session_destroy();
     }
 
     /**
@@ -50,6 +74,7 @@ class SpotifyAPI
     public function setAccessToken($access_token)
     {
         $this->access_token = $access_token;
+        $_SESSION['access_token'] = $access_token;
     }
 
     /**
@@ -58,6 +83,7 @@ class SpotifyAPI
     public function setTokenType($token_type)
     {
         $this->token_type = $token_type;
+        $_SESSION['token_type'] = $token_type;
     }
 
     /**
@@ -66,6 +92,7 @@ class SpotifyAPI
     public function setTokenExpiration($token_expiration)
     {
         $this->token_expiration = time() + $token_expiration;
+        $_SESSION['token_expiration'] = $token_expiration;
     }
 
     /**
@@ -74,10 +101,14 @@ class SpotifyAPI
     public function setRefreshToken($refresh_token)
     {
         $this->refresh_token = $refresh_token;
+        $_SESSION['refresh_token'] = $refresh_token;
     }
 
     public function generateAuthUrl(){
-        $scopes = "user-read-private user-read-email user-top-read user-read-currently-playing";
+        $scopes = "user-read-recently-played user-library-modify playlist-read-private user-read-email 
+        playlist-modify-public playlist-modify-private user-library-read playlist-read-collaborative 
+        user-read-birthdate user-read-playback-state user-read-private user-modify-playback-state user-follow-read 
+        user-top-read user-read-currently-playing user-follow-modify";
         $url = self::ACCOUNTS_URL . "authorize" .
             "?response_type=code" .
             "&client_id=" . $this->client_id .

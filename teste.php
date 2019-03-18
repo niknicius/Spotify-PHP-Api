@@ -14,7 +14,9 @@ $api = new \SpotifyAPI\SpotifyAPI();
 if(isset($_GET['code'])){
     $code = $_GET['code'];
     $api->setAuthorizationCode($code);
-    $api->getAccessToken();
+    var_dump($api->getUsersTop(1,10,0, "short_term"));
+}
+else if(isset($_GET['pg'])){
     var_dump($api->getUsersTop(1,10,0, "short_term"));
 }
 else{
