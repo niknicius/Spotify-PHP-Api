@@ -1,4 +1,5 @@
-<?php
+<?php /** @noinspection ALL */
+
 /**
  * Created by PhpStorm.
  * User: nikni
@@ -139,6 +140,33 @@ class SpotifyAPI
         $this->setTokenExpiration($response['expires_in']);
         $this->setRefreshToken($response['refresh_token']);
 
+    }
+
+    public function getAlbumsById($id){
+        $url = self::API_URL . 'albums/' . $id;
+        $auth = "Authorization: " . $this->token_type . " " . $this->access_token;
+        $headers = [
+            $auth
+        ];
+        return $this->get($url,$headers);
+    }
+
+    public function getAlbumsTracksById($id){
+        $url = self::API_URL . 'albums/' . $id . '/tracks';
+        $auth = "Authorization: " . $this->token_type . " " . $this->access_token;
+        $headers = [
+            $auth
+        ];
+        return $this->get($url,$headers);
+    }
+
+    public function getAlbums(){
+        $url = self::API_URL . 'albums';
+        $auth = "Authorization: " . $this->token_type . " " . $this->access_token;
+        $headers = [
+            $auth
+        ];
+        return $this->get($url,$headers);
     }
 
     public function getUsersTop($type, $limit, $offset, $time_range){
