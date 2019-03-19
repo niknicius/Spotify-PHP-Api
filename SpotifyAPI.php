@@ -169,6 +169,53 @@ class SpotifyAPI
         return $this->get($url,$headers);
     }
 
+    public function getArtistById($id){
+        $url = self::API_URL . 'artists/' . $id;
+        $auth = "Authorization: " . $this->token_type . " " . $this->access_token;
+        $headers = [
+            $auth
+        ];
+        return $this->get($url,$headers);
+    }
+
+    public function getArtistsAlbumsById($id){
+        $url = self::API_URL . 'artists/' . $id . '/albums';
+        $auth = "Authorization: " . $this->token_type . " " . $this->access_token;
+        $headers = [
+            $auth
+        ];
+        return $this->get($url,$headers);
+    }
+
+    public function getArtistsTopTracksById($id){
+        $url = self::API_URL . 'artists/' . $id . '/top-tracks';
+        $auth = "Authorization: " . $this->token_type . " " . $this->access_token;
+        $headers = [
+            $auth
+        ];
+        return $this->get($url,$headers);
+    }
+
+    public function getArtistsRelatedArtistsById($id){
+        $url = self::API_URL . 'artists/' . $id . '/related-artists';
+        $auth = "Authorization: " . $this->token_type . " " . $this->access_token;
+        $headers = [
+            $auth
+        ];
+        return $this->get($url,$headers);
+    }
+
+    public function getArtists(){
+        $url = self::API_URL . 'artists';
+        $auth = "Authorization: " . $this->token_type . " " . $this->access_token;
+        $headers = [
+            $auth
+        ];
+        return $this->get($url,$headers);
+    }
+
+
+
     public function getUsersTop($type, $limit, $offset, $time_range){
         $url = self::API_URL . "me/top/";
         switch ($type){
