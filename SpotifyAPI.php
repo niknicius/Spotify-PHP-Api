@@ -142,8 +142,11 @@ class SpotifyAPI
 
     }
 
-    public function getAlbumsById($id){
+    public function getAlbumById($id, $market = null){
         $url = self::API_URL . 'albums/' . $id;
+        if($market != null){
+            $url .= "?market=$market";
+        }
         $auth = "Authorization: " . $this->token_type . " " . $this->access_token;
         $headers = [
             $auth
@@ -151,8 +154,19 @@ class SpotifyAPI
         return $this->get($url,$headers);
     }
 
-    public function getAlbumsTracksById($id){
+    public function getAlbumsTracksById($id, $limit = null, $offset = null, $market = null){
         $url = self::API_URL . 'albums/' . $id . '/tracks';
+
+        if($market != null){
+            $url .= "?limit=$limit&offset=$offset&market=$market";
+        }
+        else if ($offset != null){
+            $url .= "?limit=$limit&offset=$offset";
+        }
+        else if($limit != null){
+            $url .= "?limit=$limit";
+        }
+
         $auth = "Authorization: " . $this->token_type . " " . $this->access_token;
         $headers = [
             $auth
@@ -160,8 +174,22 @@ class SpotifyAPI
         return $this->get($url,$headers);
     }
 
-    public function getAlbums(){
-        $url = self::API_URL . 'albums';
+    public function getAlbums($albumsIdsSeparated, $market = null){
+
+        if(is_array($albumsIdsSeparated)) {
+            $albumsIds = implode(",", $albumsIdsSeparated);
+        }else{
+            $albumsIds = $albumsIdsSeparated;
+        }
+
+        $url = self::API_URL . 'albums?ids=' . $albumsIds;
+
+        if($market != null){
+            $url .= $albumsIdsSeparated;
+        }
+
+        var_dump($url);
+
         $auth = "Authorization: " . $this->token_type . " " . $this->access_token;
         $headers = [
             $auth
@@ -187,8 +215,8 @@ class SpotifyAPI
         return $this->get($url,$headers);
     }
 
-    public function getArtistsTopTracksById($id){
-        $url = self::API_URL . 'artists/' . $id . '/top-tracks';
+    public function getArtistsTopTracksById($id,$country){
+        $url = self::API_URL . 'artists/' . $id . '/top-tracks?country=' . $country;
         $auth = "Authorization: " . $this->token_type . " " . $this->access_token;
         $headers = [
             $auth
@@ -214,7 +242,14 @@ class SpotifyAPI
         return $this->get($url,$headers);
     }
 
-
+    public function getBrowseCategoriesById($id){
+        $url = self::API_URL . 'browse/categories/' . $id;
+        $auth = "Authorization: " . $this->token_type . " " . $this->access_token;
+        $headers = [
+            $auth
+        ];
+        return $this->get($url,$headers);
+    }
 
     public function getUsersTop($type, $limit, $offset, $time_range){
         $url = self::API_URL . "me/top/";
@@ -260,7 +295,12 @@ class SpotifyAPI
     }
 
 
-    private function post($url,$headers){
+    /**
+     * @param $url
+     * @param $headers
+     * @return json
+     */
+    private function post($url, $headers) : string{
         $curl = curl_init();
 
         curl_setopt($curl, CURLOPT_URL, $url);
@@ -271,7 +311,12 @@ class SpotifyAPI
         return curl_exec($curl);
     }
 
-    private function get($url,$headers){
+    /**
+     * @param $url
+     * @param $headers
+     * @return json
+     */
+    private function get($url, $headers) : string{
         $curl = curl_init();
 
         curl_setopt($curl, CURLOPT_URL, $url);
@@ -281,7 +326,12 @@ class SpotifyAPI
         return curl_exec($curl);
     }
 
-    private function delete($url,$headers){
+    /**
+     * @param $url
+     * @param $headers
+     * @return json
+     */
+    private function delete($url, $headers) : string{
         $curl = curl_init();
 
         curl_setopt($curl, CURLOPT_URL, $url);
@@ -292,7 +342,12 @@ class SpotifyAPI
         return curl_exec($curl);
     }
 
-    private function put($url,$headers){
+    /**
+     * @param $url
+     * @param $headers
+     * @return json
+     */
+    private function put($url, $headers) : string{
         $curl = curl_init();
 
         curl_setopt($curl, CURLOPT_URL, $url);

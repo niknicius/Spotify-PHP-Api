@@ -14,10 +14,13 @@ $api = new \SpotifyAPI\SpotifyAPI();
 if(isset($_GET['code'])){
     $code = $_GET['code'];
     $api->setAuthorizationCode($code);
-    var_dump($api->getUsersTop(1,10,0, "short_term"));
+    header("Location: http://localhost/teste.php?pg=ph");
+
 }
 else if(isset($_GET['pg'])){
-    var_dump($api->getUsersTop(1,10,0, "short_term"));
+    header('Content-Type: application/json');
+    echo $api->getAlbums("41MnTivkwTO3UUJ8DrqEJJ,6JWc4iAiJ9FjyK0B59ABb4,6UXCm6bOO4gFlDQZV5yL37");
+
 }
 else{
     header("Location: ". $api->generateAuthUrl());
