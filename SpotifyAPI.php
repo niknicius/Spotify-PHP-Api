@@ -126,11 +126,7 @@ class SpotifyAPI
             "&code=" . $this->authorization_code.
             "&redirect_uri=" . self::REDIRECT_URL;
 
-        $auth = "Authorization: Basic " . base64_encode($this->client_id . ':' . $this->client_secret);
-        $headers = [
-            $auth,
-            "Content-Type: application/x-www-form-urlencoded"
-        ];
+        $auth = $this->getHeaders("client_secret", "Content-Type: application/x-www-form-urlencoded");
 
         $response = $this->post($url,$headers);
         $response = json_decode($response,true);
@@ -147,10 +143,8 @@ class SpotifyAPI
         if($market != null){
             $url .= "?market=$market";
         }
-        $auth = "Authorization: " . $this->token_type . " " . $this->access_token;
-        $headers = [
-            $auth
-        ];
+        $headers = $this->getHeaders("access_token");
+
         return $this->get($url,$headers);
     }
 
@@ -167,10 +161,7 @@ class SpotifyAPI
             $url .= "?limit=$limit";
         }
 
-        $auth = "Authorization: " . $this->token_type . " " . $this->access_token;
-        $headers = [
-            $auth
-        ];
+        $headers = $this->getHeaders("access_token");
         return $this->get($url,$headers);
     }
 
@@ -190,64 +181,49 @@ class SpotifyAPI
 
         var_dump($url);
 
-        $auth = "Authorization: " . $this->token_type . " " . $this->access_token;
-        $headers = [
-            $auth
-        ];
+        $headers = $this->getHeaders("access_token");
         return $this->get($url,$headers);
     }
 
     public function getArtistById($id){
         $url = self::API_URL . 'artists/' . $id;
         $auth = "Authorization: " . $this->token_type . " " . $this->access_token;
-        $headers = [
-            $auth
-        ];
+        $headers = $this->getHeaders("access_token");
         return $this->get($url,$headers);
     }
 
     public function getArtistsAlbumsById($id){
         $url = self::API_URL . 'artists/' . $id . '/albums';
         $auth = "Authorization: " . $this->token_type . " " . $this->access_token;
-        $headers = [
-            $auth
-        ];
+        $headers = $this->getHeaders("access_token");
         return $this->get($url,$headers);
     }
 
     public function getArtistsTopTracksById($id,$country){
         $url = self::API_URL . 'artists/' . $id . '/top-tracks?country=' . $country;
         $auth = "Authorization: " . $this->token_type . " " . $this->access_token;
-        $headers = [
-            $auth
-        ];
+        $headers = $this->getHeaders("access_token");
         return $this->get($url,$headers);
     }
 
     public function getArtistsRelatedArtistsById($id){
         $url = self::API_URL . 'artists/' . $id . '/related-artists';
         $auth = "Authorization: " . $this->token_type . " " . $this->access_token;
-        $headers = [
-            $auth
-        ];
+        $headers = $this->getHeaders("access_token");
         return $this->get($url,$headers);
     }
 
     public function getArtists(){
         $url = self::API_URL . 'artists';
         $auth = "Authorization: " . $this->token_type . " " . $this->access_token;
-        $headers = [
-            $auth
-        ];
+        $headers = $this->getHeaders("access_token");
         return $this->get($url,$headers);
     }
 
     public function getBrowseCategoriesById($id){
         $url = self::API_URL . 'browse/categories/' . $id;
         $auth = "Authorization: " . $this->token_type . " " . $this->access_token;
-        $headers = [
-            $auth
-        ];
+        $headers = $this->getHeaders("access_token");
         return $this->get($url,$headers);
     }
 
@@ -269,9 +245,7 @@ class SpotifyAPI
             "&time_range=" . $time_range;
 
         $auth = "Authorization: " . $this->token_type . " " . $this->access_token;
-        $headers = [
-            $auth
-        ];
+        $headers = $this->getHeaders("access_token");
         var_dump($url);
         return $this->get($url,$headers);
     }
@@ -279,19 +253,48 @@ class SpotifyAPI
     public function getMeProfile(){
         $url = self::API_URL . 'me';
         $auth = "Authorization: " . $this->token_type . " " . $this->access_token;
-        $headers = [
-            $auth
-        ];
+        $headers = $this->getHeaders("access_token");
         return $this->get($url,$headers);
     }
 
     public function getUsersProfile($id){
         $url = self::API_URL . 'users/' . $id;
         $auth = "Authorization: " . $this->token_type . " " . $this->access_token;
-        $headers = [
-            $auth
-        ];
+        $headers = $this->getHeaders("access_token");
         return $this->get($url,$headers);
+    }
+
+    /**
+     * @param $typeAuth
+     * @param null $aditionalHeaders
+     * @return array|null
+     */
+    private function getHeaders($typeAuth, $aditionalHeaders = null){
+        switch($typeAuth){
+
+            case "client_secret":
+                $auth = "Authorization: Basic " . base64_encode($this->client_id . ':' . $this->client_secret);
+                $headers = [$auth];
+                break;
+            case "access_token":
+                $auth = "Authorization: " . $this->token_type . " " . $this->access_token;
+                $headers = [$auth];
+                break;
+            default:
+                return null;
+        }
+
+        if($aditionalHeaders != null){
+            if(is_array($aditionalHeaders)){
+                foreach($aditionalHeaders as $value){
+                    array_push($headers, $value);
+                }
+            }
+            else{
+                array_push($headers, $aditionalHeaders);
+            }
+        }
+        return $headers;
     }
 
 
