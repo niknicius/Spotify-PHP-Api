@@ -20,6 +20,8 @@ class SpotifyAPI
     const REDIRECT_URL = "http://localhost/teste.php";
     const POST = "POST";
     const GET = "GET";
+    const DELETE = "DELETE";
+    const PUT = "PUT";
     const DEBUG_MODE = 1;
 
     private $client_id = "17de3e80c9bf4082bf7b6153f68c2554";
@@ -126,7 +128,7 @@ class SpotifyAPI
             "&code=" . $this->authorization_code.
             "&redirect_uri=" . self::REDIRECT_URL;
 
-        $auth = $this->getHeaders("client_secret", "Content-Type: application/x-www-form-urlencoded");
+        $headers = $this->getHeaders("client_secret", "Content-Type: application/x-www-form-urlencoded");
 
         $response = $this->post($url,$headers);
         $response = json_decode($response,true);
@@ -165,24 +167,18 @@ class SpotifyAPI
         return $this->get($url,$headers);
     }
 
-    public function getAlbums($albumsIdsSeparated, $market = null){
+    public function getAlbums($albumsIdsSeparated, $options = []){
 
-        if(is_array($albumsIdsSeparated)) {
-            $albumsIds = implode(",", $albumsIdsSeparated);
-        }else{
-            $albumsIds = $albumsIdsSeparated;
-        }
+        $options = (array) $options;
 
-        $url = self::API_URL . 'albums?ids=' . $albumsIds;
+        $options['ids'] = implode(',', (array) $albumsIdsSeparated);
 
-        if($market != null){
-            $url .= $albumsIdsSeparated;
-        }
-
-        var_dump($url);
+        $url = self::API_URL . 'albums';
 
         $headers = $this->getHeaders("access_token");
-        return $this->get($url,$headers);
+
+        $response = $this->request($url,self::GET, $options,$headers);
+        return $response;
     }
 
     public function getArtistById($id){
@@ -192,8 +188,13 @@ class SpotifyAPI
         return $this->get($url,$headers);
     }
 
-    public function getArtistsAlbumsById($id){
+    public function getArtistsAlbumsById($id, $include_groups = null, $country = null, $limit = null, $offset = null){
         $url = self::API_URL . 'artists/' . $id . '/albums';
+
+        if($include_groups != null || $country != null || $limit != null || $offset != null){
+            $url .= "?";
+        }
+
         $auth = "Authorization: " . $this->token_type . " " . $this->access_token;
         $headers = $this->getHeaders("access_token");
         return $this->get($url,$headers);
@@ -359,6 +360,43 @@ class SpotifyAPI
         curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "PUT");
 
         return curl_exec($curl);
+    }
+
+    private function request($url, $method, $params, $headers){
+        $curl = curl_init();
+
+        if(is_array($params) || is_object($params)){
+            $params = http_build_query($params);
+        }
+
+        switch($method){
+
+            case self::POST:
+                curl_setopt($curl, CURLOPT_POST, 1);
+                curl_setopt($curl, CURLOPT_POSTFIELDS, $params);
+                break;
+            case self::DELETE:
+                curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "DELETE");
+                break;
+            case self::PUT:
+                curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "PUT");
+                curl_setopt($curl, CURLOPT_POSTFIELDS, $params);
+                break;
+            default:
+                if($params != null){
+                    $url .= '?' . $params;
+                }
+        }
+
+        curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($curl, CURLOPT_URL, $url);
+        $response = curl_exec($curl);
+        if (curl_error($curl)) {
+            throw new \Exception('cURL transport error: ' . curl_errno($curl) . ' ' .  curl_error($curl ));
+        }
+        var_dump($url);
+        return $response;
+
     }
 
 
