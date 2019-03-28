@@ -9,6 +9,8 @@
 
 namespace SpotifyAPI;
 
+use mysql_xdevapi\Exception;
+
 session_start();
 
 
@@ -132,100 +134,139 @@ class SpotifyAPI
 
         $response = $this->post($url,$headers);
         $response = json_decode($response,true);
-        var_dump($response);
         $this->setAccessToken($response['access_token']);
         $this->setTokenType($response['token_type']);
         $this->setTokenExpiration($response['expires_in']);
-        $this->setRefreshToken($response['refresh_token']);
 
     }
 
-    public function getAlbumById($id, $market = null){
+    public function refreshToken(){
+        $url = self::ACCOUNTS_URL . 'api/token';
+        $headers = $this->getHeaders("client_secret", "Content-Type: application/x-www-form-urlencoded");
+        $options = [
+            'grant_type' => 'refresh_token',
+            'refresh_token' => $this->refresh_token
+        ];
+
+        $response = $this->request($url,POST, $options, $headers);
+        var_dump($response);
+
+    }
+
+    public function getAlbumById($id, $options = []){
+        $options = (array) $options;
         $url = self::API_URL . 'albums/' . $id;
-        if($market != null){
-            $url .= "?market=$market";
-        }
         $headers = $this->getHeaders("access_token");
-
-        return $this->get($url,$headers);
+        $response = $this->request($url, self::GET, $options, $headers);
+        return $response;
     }
 
-    public function getAlbumsTracksById($id, $limit = null, $offset = null, $market = null){
+    public function getAlbumsTracksById($id, $options = []){
+        $options = (array) $options;
         $url = self::API_URL . 'albums/' . $id . '/tracks';
-
-        if($market != null){
-            $url .= "?limit=$limit&offset=$offset&market=$market";
-        }
-        else if ($offset != null){
-            $url .= "?limit=$limit&offset=$offset";
-        }
-        else if($limit != null){
-            $url .= "?limit=$limit";
-        }
-
         $headers = $this->getHeaders("access_token");
-        return $this->get($url,$headers);
+        $response = $this->request($url, self::GET, $options, $headers);
+        return $response;
     }
 
     public function getAlbums($albumsIdsSeparated, $options = []){
-
         $options = (array) $options;
-
         $options['ids'] = implode(',', (array) $albumsIdsSeparated);
-
         $url = self::API_URL . 'albums';
-
         $headers = $this->getHeaders("access_token");
-
         $response = $this->request($url,self::GET, $options,$headers);
         return $response;
     }
 
     public function getArtistById($id){
+        $options = (array) $options;
         $url = self::API_URL . 'artists/' . $id;
-        $auth = "Authorization: " . $this->token_type . " " . $this->access_token;
         $headers = $this->getHeaders("access_token");
-        return $this->get($url,$headers);
+        $response = $this->request($url,self::GET, [],$headers);
+        return $response;
     }
 
-    public function getArtistsAlbumsById($id, $include_groups = null, $country = null, $limit = null, $offset = null){
+    public function getArtistsAlbumsById($id, $options = []){
+        $options = (array) $options;
         $url = self::API_URL . 'artists/' . $id . '/albums';
-
-        if($include_groups != null || $country != null || $limit != null || $offset != null){
-            $url .= "?";
-        }
-
-        $auth = "Authorization: " . $this->token_type . " " . $this->access_token;
         $headers = $this->getHeaders("access_token");
-        return $this->get($url,$headers);
+        $response = $this->request($url,self::GET, $options,$headers);
+        return $response;
     }
 
-    public function getArtistsTopTracksById($id,$country){
-        $url = self::API_URL . 'artists/' . $id . '/top-tracks?country=' . $country;
-        $auth = "Authorization: " . $this->token_type . " " . $this->access_token;
+    public function getArtistsTopTracksById($id, $options = []){
+        $options = (array) $options;
+        $url = self::API_URL . 'artists/' . $id . '/top-tracks';
+        if($options['country'] == null){
+            throw new \Exception("Missing required param: country");
+        }
         $headers = $this->getHeaders("access_token");
-        return $this->get($url,$headers);
+        $response = $this->request($url,self::GET, $options,$headers);
+        return $response;
     }
 
     public function getArtistsRelatedArtistsById($id){
         $url = self::API_URL . 'artists/' . $id . '/related-artists';
-        $auth = "Authorization: " . $this->token_type . " " . $this->access_token;
         $headers = $this->getHeaders("access_token");
-        return $this->get($url,$headers);
+        $response = $this->request($url,self::GET, [],$headers);
+        return $response;
     }
 
-    public function getArtists(){
+    public function getArtists($artistsIdsSeparated, $options = []){
         $url = self::API_URL . 'artists';
-        $auth = "Authorization: " . $this->token_type . " " . $this->access_token;
+        $options = (array) $options;
+        $options['ids'] = implode(',', (array) $artistsIdsSeparated);
         $headers = $this->getHeaders("access_token");
-        return $this->get($url,$headers);
+        $response = $this->request($url,self::GET, [],$headers);
+        return $response;
     }
 
-    public function getBrowseCategoriesById($id){
+    public function getBrowseCategoriesById($id, $options = []){
+        $options = (array) $options;
         $url = self::API_URL . 'browse/categories/' . $id;
-        $auth = "Authorization: " . $this->token_type . " " . $this->access_token;
         $headers = $this->getHeaders("access_token");
-        return $this->get($url,$headers);
+        $response = $this->request($url,self::GET, $options,$headers);
+        return $response;
+    }
+
+    public function getBrowserCategoryPlaylist($id, $options = []){
+        $options = (array) $options;
+        $url = self::API_URL . 'browse/categories/' . $id . '/playlists';
+        $headers = $this->getHeaders("access_token");
+        $response = $this->request($url,self::GET, $options,$headers);
+        return $response;
+    }
+
+    public function getBrowserCategories($options = []){
+        $options = (array) $options;
+        $url =  self::API_URL . 'browse/categories';
+        $headers = $this->getHeaders("access_token");
+        $response = $this->request($url,self::GET, $options,$headers);
+        return $response;
+    }
+
+    public function getBrowserFeaturedPlaylists($options = []){
+        $options = (array) $options;
+        $url =  self::API_URL . 'browse/featured-playlists';
+        $headers = $this->getHeaders("access_token");
+        $response = $this->request($url,self::GET, $options,$headers);
+        return $response;
+    }
+
+    public function getBrowserNewReleases($options = []){
+        $options = (array) $options;
+        $url =  self::API_URL . 'browse/new-releases';
+        $headers = $this->getHeaders("access_token");
+        $response = $this->request($url,self::GET, $options,$headers);
+        return $response;
+    }
+
+    public function getBrowserRecomendations($options = []){
+        $options = (array) $options;
+        $url =  self::API_URL . 'browse/recommendations';
+        $headers = $this->getHeaders("access_token");
+        $response = $this->request($url,self::GET, $options,$headers);
+        return $response;
     }
 
     public function getUsersTop($type, $limit, $offset, $time_range){
@@ -394,7 +435,8 @@ class SpotifyAPI
         if (curl_error($curl)) {
             throw new \Exception('cURL transport error: ' . curl_errno($curl) . ' ' .  curl_error($curl ));
         }
-        var_dump($url);
+
+
         return $response;
 
     }
